@@ -18,8 +18,6 @@ checkmarx:
 push:
   stage: deploy
   script:
-    - git config --global user.email "ecom@raiffeisen.ru"
-    - git config --global user.name "user-ecom-git"
     - git push https://$OPEN_SOURCE_GITHUB_LOGIN:$OPEN_SOURCE_GITHUB_TOKEN@github.com/Raiffeisen-DGTL/$APP_NAME.git HEAD:main --force
   only:
     - main
