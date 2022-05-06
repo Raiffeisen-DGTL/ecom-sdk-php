@@ -9,6 +9,7 @@ include:
 
 variables:
   APP_NAME: ecom-sdk-php
+  VERSION: 1.1.$CI_PIPELINE_IID
 
 checkmarx:
   rules:
@@ -19,6 +20,7 @@ push:
   script:
     - git config --global user.email "ecom@raiffeisen.ru"
     - git config --global user.name "user-ecom-git"
+    - git tag v$VERSION
     - git push https://$OPEN_SOURCE_GITHUB_LOGIN:$OPEN_SOURCE_GITHUB_TOKEN_PHP@github.com/Raiffeisen-DGTL/$APP_NAME.git HEAD:main --force
   only:
     - main
