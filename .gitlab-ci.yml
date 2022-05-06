@@ -8,7 +8,6 @@ include:
     file: '.checkmarx-java.yml'
 
 variables:
-  VERSION: 1.1.$CI_PIPELINE_IID
   APP_NAME: ecom-sdk-php
 
 checkmarx:
