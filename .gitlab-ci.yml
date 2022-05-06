@@ -1,0 +1,23 @@
+stages:
+  - verify
+  - deploy
+
+include:
+  - project: 'acquiring/devops/pipelines'
+    ref: master
+    file: '.checkmarx-java.yml'
+
+variables:
+  VERSION: 1.1.$CI_PIPELINE_IID
+  APP_NAME: ecom-sdk-php
+
+checkmarx:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+push:
+  stage: deploy
+  script:
+    - git push https://$OPEN_SOURCE_GITHUB_LOGIN:$OPEN_SOURCE_GITHUB_PASSWORD@github.com/Raiffeisen-DGTL/$APP_NAME.git HEAD:main --force
+  only:
+    - main
