@@ -48,6 +48,7 @@ if (false === defined('CLIENT_VERSION')) {
  *
  * @property string   $secretKey  The secret key, is set-only.
  * @property string   $publicId   The public ID, is full access.
+ * @property string   $host       The API URL host.
  * @property resource $curl       The request, is get-only.
  */
 class Client
@@ -109,25 +110,53 @@ class Client
     const DELETE = 'DELETE';
 
     /**
+     * The production API host.
+     *
+     * @const string
+     */
+    const HOST_PROD = 'https://e-commerce.raiffeisen.ru';
+
+    /**
+     * The test API host.
+     *
+     * @const string
+     */
+    const HOST_TEST = 'https://test.ecom.raiffeisen.ru';
+
+    /**
      * The default URL to payment form.
      *
      * @const string
      */
-    const PAYMENT_FORM_URI = 'https://e-commerce.raiffeisen.ru/pay/';
+    const PAYMENT_FORM_URI = '/pay';
+
+    /**
+     * The default base URL to payment API.
+     *
+     * @const string
+     */
+    const PAYMENT_API_URI = '/api/payment/v1';
 
     /**
      * The default base URL to payments API.
      *
      * @const string
      */
-    const PAYMENTS_API_URI = 'https://e-commerce.raiffeisen.ru/api/payments/v1';
+    const PAYMENTS_API_URI = '/api/payments/v1';
+
+    /**
+     * The default base URL to fiscal API.
+     *
+     * @const string
+     */
+    const FISCAL_API_URI = '/api/fiscal/v1';
 
     /**
      * The default base URL to settings API.
      *
      * @const string
      */
-    const SETTINGS_API_URI = 'https://e-commerce.raiffeisen.ru/api/settings/v1';
+    const SETTINGS_API_URI = '/api/settings/v1';
 
     /**
      * The secret key.
@@ -144,6 +173,13 @@ class Client
     protected $publicId;
 
     /**
+     * The API host.
+     *
+     * @var string
+     */
+    protected $host;
+
+    /**
      * The request.
      *
      * @var resource
@@ -158,10 +194,11 @@ class Client
      * @param string $publicId  The public identifier.
      * @param array  $options   The dictionary of request options.
      */
-    public function __construct($secretKey, $publicId, array $options=[])
+    public function __construct($secretKey, $publicId, $host = self::HOST_PROD, array $options=[])
     {
         $this->secretKey    = (string) $secretKey;
         $this->publicId     = (string) $publicId;
+        $this->host         = (string) $host;
         $this->internalCurl = curl_init();
         curl_setopt_array(
             $this->internalCurl,
@@ -192,6 +229,9 @@ class Client
         case 'publicId':
             $this->publicId = (string) $value;
             break;
+        case 'host':
+            $this->host = (string) $value;
+            break;
         case 'curl':
             throw new Exception('Not acceptable property '.$name.'.');
         default:
@@ -217,6 +257,8 @@ class Client
             throw new Exception('Not acceptable property '.$name.'.');
         case 'publicId':
             return $this->publicId;
+        case 'host':
+            return $this->host;
         case 'curl':
             return $this->internalCurl;
         default:
@@ -242,6 +284,8 @@ class Client
             return !empty($this->secretKey);
         case 'publicId':
             return !empty($this->publicId);
+        case 'host':
+            return !empty($this->host);
         case 'curl':
             return !empty($this->internalCurl);
         default:
@@ -332,9 +376,37 @@ class Client
             $query
         );
 
-        return $baseUrl.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        return $this->host.$baseUrl.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 
     }//end getPayUrl()
+
+    /**
+     * Post payment form witch success URL param.
+     *
+     * @param numeric $amount  The order data.
+     * @param string  $orderId The order identifier.
+     * @param array   $query   The additional query params.
+     * @param string  $baseUrl The base payment form url.
+     *
+     * @return array Return result.
+     *
+     * @throws ClientException
+     */
+    public function postPayUrl($amount, $orderId, array $query, $baseUrl=self::PAYMENT_FORM_URI)
+    {
+        // Preset required fields.
+        $body = array_replace(
+            [
+                'publicId' => $this->publicId,
+                'amount'   => $amount,
+                'orderId'  => $orderId,
+            ],
+            $query
+        );
+
+        return $this->requestBuilder($baseUrl, self::POST, $body, true);
+
+    }//end postPayUrl()
 
 
     /**
@@ -351,7 +423,7 @@ class Client
     {
         $url = $baseUrl.'/orders/'.$orderId.'/transaction';
 
-        return $this->requestBuilder($url, self::DELETE);
+        return $this->requestBuilder($url);
 
     }//end getOrderTransaction()
 
@@ -407,7 +479,7 @@ class Client
      *
      * @throws ClientException Throw on API return invalid response.
      */
-    public function getOrder($orderId, $baseUrl=self::PAYMENTS_API_URI)
+    public function getOrder($orderId, $baseUrl=self::PAYMENT_API_URI)
     {
         $url = $baseUrl.'/orders/'.$orderId;
 
@@ -426,7 +498,7 @@ class Client
      *
      * @throws ClientException Throw on API return invalid response.
      */
-    public function deleteOrder($orderId, $baseUrl=self::PAYMENTS_API_URI)
+    public function deleteOrder($orderId, $baseUrl=self::PAYMENT_API_URI)
     {
         $url = $baseUrl.'/orders/'.$orderId;
 
@@ -446,7 +518,7 @@ class Client
      *
      * @throws ClientException Throw on API return invalid response.
      */
-    public function getOrderReceipts($orderId, $receiptType=null, $baseUrl=self::PAYMENTS_API_URI)
+    public function getOrderReceipts($orderId, $receiptType=null, $baseUrl=self::FISCAL_API_URI)
     {
         $url = $baseUrl.'/orders/'.$orderId.'/receipts';
         if (true !== empty($receiptType)) {
@@ -470,7 +542,7 @@ class Client
      *
      * @throws ClientException Throw on API return invalid response.
      */
-    public function getOrderRefundReceipt($orderId, $refundId, $baseUrl=self::PAYMENTS_API_URI)
+    public function getOrderRefundReceipt($orderId, $refundId, $baseUrl=self::FISCAL_API_URI)
     {
         $url = $baseUrl.'/orders/'.$orderId.'/refunds/'.$refundId.'/receipt';
 
@@ -485,13 +557,14 @@ class Client
      * @param string $url    The url.
      * @param string $method The method.
      * @param array  $body   The body.
+     * @param array  $raw    The response raw return flag.
      *
      * @return bool|array Return response.
      *
      * @throws Exception Throw on unsupported $method use.
      * @throws ClientException Throw on API return invalid response.
      */
-    protected function requestBuilder($url, $method=self::GET, array $body=[])
+    protected function requestBuilder($url, $method=self::GET, array $body=[], $raw = false)
     {
         $curl    = curl_copy_handle($this->internalCurl);
         $headers = [
@@ -512,7 +585,7 @@ class Client
         curl_setopt_array(
             $curl,
             [
-                CURLOPT_URL            => $url,
+                CURLOPT_URL            => $this->host.$url,
                 CURLOPT_HTTPHEADER     => $headers,
                 CURLOPT_CUSTOMREQUEST  => $method,
                 CURLOPT_POSTFIELDS     => $body,
@@ -523,6 +596,10 @@ class Client
 
         if (false === $response) {
             throw new ClientException($curl, curl_error($curl), curl_getinfo($curl, CURLINFO_RESPONSE_CODE));
+        }
+
+        if ($raw) {
+            return $response;
         }
 
         if (false === empty($response)) {
