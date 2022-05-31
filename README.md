@@ -79,7 +79,7 @@ $query = [
 ];
 
 /** @var \Raiffeisen\Ecom\Client $client */
-$link = $client->getPayUrl(200, '***', $params);
+$link = $client->getPayUrl($amount, $orderId, $query);
 
 echo $link;
 
@@ -90,6 +90,31 @@ echo $link;
 
 ```
 https://e-commerce.raiffeisen.ru/pay/?publicId=***&amount=10&orderId=testOrder&successUrl=http%3A%2F%2Ftest.ru%2F
+```
+
+Метод `postPayUrl` возвращает ссылку платежную форму в виде html-страницы.
+В параметрах нужно указать:
+
+* `$amount` - сумма заказа;
+* `$orderId` - идентификатор заказа;
+* `$query` - дополнительные параметры запроса, а так же параметры чека.
+
+```php
+<?php
+
+$amount = 10;
+$orderId = 'testOrder';
+$query = [
+  'successUrl' => 'http://test.ru/',
+  'receipt' => [
+    'customer' => [ ... ],
+    'items': [ ... ]
+  ]
+];
+
+$client->postPayUrl($amount, $orderId, $query);
+
+?>
 ```
 
 ### Получение информации о статусе транзакции
@@ -446,4 +471,3 @@ $client->checkEventSignature($signature, $eventBody); // true or false
 ## Лицензия
 
 [MIT](LICENSE)
-
