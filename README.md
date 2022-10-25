@@ -20,7 +20,7 @@ $ composer require raiffeisen-ecom/payment-sdk
 
 Генерация авто-документации `composer run docs`.
 
-## Авторизация
+## Клиент API
 
 Для использования SDK требуется секретный ключ `$secretKey` и идентификатор мерчанта `$publicId`, подробности [в документации](https://pay.raif.ru/doc/ecom.html#section/API/Avtorizaciya) и на [сайте банка](https://www.raiffeisen.ru/corporate/management/commerce/).
 
@@ -33,6 +33,13 @@ $ecomClient = new \Raiffeisen\Ecom\Client($secretKey, $publicId);
 
 ?>
 ```
+
+Параметры конструктора и свойства клиента:
+
+* `$secretKey` - секретный ключ, обязательный, доступ только на запись;
+* `$publicId` - идентификатор мерчанта, обязательный, доступ на чтение и запись;
+* `$host` - хост api, по умолчанию `https://e-commerce.raiffeisen.ru`, доступ на чтение и запись;
+* `$options` - дополнительные [параметры запроса](https://www.php.net/manual/en/function.curl-setopt.php), доступ только на чтение.
 
 ## Примеры
 
@@ -471,3 +478,4 @@ $client->checkEventSignature($signature, $eventBody); // true or false
 ## Лицензия
 
 [MIT](LICENSE)
+

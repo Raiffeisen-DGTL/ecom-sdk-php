@@ -75,6 +75,13 @@ class Client
     const DATETIME_FORMAT = 'Y-m-d\TH:i:sP';
 
     /**
+     * The API number decimal separator.
+     *
+     * @const string
+     */
+    const NUMBER_SEPARATOR = '.';
+
+    /**
      * The income check type.
      *
      * @const string
@@ -321,14 +328,24 @@ class Client
             $eventBody
         );
 
-        $processedEventData = [
-            'amount'                   => $eventBody['transaction']['amount'],
-            'publicId'                 => $this->publicId,
-            'order'                    => $eventBody['transaction']['orderId'],
-            'transaction.status.value' => $eventBody['transaction']['status']['value'],
-            'transaction.status.date'  => $eventBody['transaction']['status']['date'],
+        list ($int, $dec) = explode(
+            self::NUMBER_SEPARATOR,
+            number_format($eventBody['transaction']['amount'], 2, self::NUMBER_SEPARATOR, ''),
+            2
+        );
+        if ($dec > 0) {
+            $amount = $int.self::NUMBER_SEPARATOR.rtrim($dec, 0);
+        } else {
+            $amount = $int;
+        }
+
+        $processedEventData            = [
+            $amount,
+            $this->publicId,
+            $eventBody['transaction']['orderId'],
+            $eventBody['transaction']['status']['value'],
+            $eventBody['transaction']['status']['date'],
         ];
-        ksort($processedEventData);
         $processedNotificationDataKeys = join(self::VALUE_SEPARATOR, $processedEventData);
         $hash = hash_hmac(self::DEFAULT_ALGORITHM, $processedNotificationDataKeys, $this->secretKey);
 
@@ -376,7 +393,7 @@ class Client
             $query
         );
 
-        return $this->host.$baseUrl.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        return $this->host.$baseUrl.'/?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 
     }//end getPayUrl()
 

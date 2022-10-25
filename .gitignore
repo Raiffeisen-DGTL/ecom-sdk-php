@@ -1,2 +1,6 @@
-.idea
-vendor
+/build
+/docs
+/tests/config.php
+/vendor
+/wiki
+composer.lock
