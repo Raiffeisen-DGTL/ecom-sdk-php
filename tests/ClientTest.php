@@ -105,8 +105,8 @@ class ClientTest extends TestCase
     {
         $this->setMockError(
             [
-                CURLOPT_URL           => Client::PAYMENTS_API_URI.'/orders/test_order_ID',
-                CURLOPT_CUSTOMREQUEST => Client::GET,
+                CURLOPT_URL           => 'https://e-commerce.raiffeisen.ru/api/payment/v1/orders/test_order_ID',
+                CURLOPT_CUSTOMREQUEST => 'GET',
             ],
             'test CURL error'
         );
@@ -145,7 +145,7 @@ class ClientTest extends TestCase
 
         $this->assertTrue(
             $this->client->checkEventSignature(
-                'a682b6908e2cb28098ec1eef2eb1b54ac5b0ffd06a9f78d0934f2ee3e167fb1d',
+                '96c4b6fa97866f01acabcf32116e3e1347e0e5769b8587eeb877b79180eea4cb',
                 $notificationData
             ),
             'should return true on valid signature'
