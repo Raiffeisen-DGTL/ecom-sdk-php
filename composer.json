@@ -1,7 +1,6 @@
 {
     "name": "raiffeisen-ecom/payment-sdk",
     "type": "library",
-    "version": "0.0.4",
     "description": "Ecommerce payment API SDK",
     "license": "MIT",
     "homepage": "https://github.com/Raiffeisen-DGTL/ecom-sdk-php",
