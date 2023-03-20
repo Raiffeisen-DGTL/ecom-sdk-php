@@ -115,7 +115,7 @@ $query = [
   'successUrl' => 'http://test.ru/',
   'receipt' => [
     'customer' => [ ... ],
-    'items': [ ... ]
+    'items' => [ ... ]
   ]
 ];
 
@@ -123,6 +123,86 @@ $client->postPayUrl($amount, $orderId, $query);
 
 ?>
 ```
+
+Метод `getPayJS` вернет JavaScript для отображения платежной формы на странице.
+Данный метод подходит для передачи чеков.
+В параметрах нужно указать:
+
+* `$amount` - сумма заказа;
+* `$orderId` - идентификатор заказа;
+* `$query` - дополнительные параметры запроса, а так же параметры чека.
+
+```php
+<?php
+
+$amount = 10;
+$orderId = 'testOrder';
+$query = [
+  'receipt' => [
+    'items' => [ 
+      [
+        'name' => 'Тестовый товар',
+        'price' => 10,
+        'quantity' => 1,
+        'paymentObject' => 'COMMODITY',
+        'paymentMode' => 'FULL_PAYMENT',
+        'amount' => 10,
+        'vatType' => 'VAT20'
+      ] 
+    ]
+  ]
+];
+
+echo $client->getPayJS($amount, $orderId, $query);
+
+?>
+```
+
+Вывод:
+
+```js
+(({
+    publicId,
+    formData,
+    url = 'https://e-commerce.raiffeisen.ru/pay',
+    method = 'openPopup',
+    sdk = 'PaymentPageSdk',
+    src = 'https://pay.raif.ru/pay/sdk/v2/payment.styled.min.js',
+}) => new Promise((resolve, reject) => {
+    const openPopup = () => {
+        new this[sdk](publicId, {url})[method](formData).then(resolve).catch(reject);
+    };
+    if (!this.hasOwnProperty(sdk)) {
+        const script = this.document.createElement('script');
+        script.src = src;
+        script.onload = openPopup;
+        script.onerror = reject;
+        this.document.head.appendChild(script);
+    } else openPopup();
+}))({
+    "publicId": "***",
+    "url": "https://e-commerce.raiffeisen.ru/pay",
+    "formData": {
+        "orderId": "testOrder",
+        "amount": 10,
+        "receipt": {
+            "items": [
+                {
+                    "name": "Тестовый товар",
+                    "price": 10,
+                    "quantity": 1,
+                    "paymentObject": "COMMODITY",
+                    "paymentMode": "FULL_PAYMENT",
+                    "amount": 10,
+                    "vatType": "VAT20"
+                }
+            ]
+        }
+    }
+})
+```
+
+Данный JS можно встроить на страницу непосредственно с помощью тега SCRIPT или использовать как Promise в собственных сценариях.
 
 ### Получение информации о статусе транзакции
 
@@ -447,8 +527,8 @@ $eventBody = [
         'id' => 120059,
         'orderId' => 'testOrder',
         'status' => [
-            "value" => 'SUCCESS',
-            "date" => '2019-07-11T17:45:13+03:00',
+            'value' => 'SUCCESS',
+            'date' => '2019-07-11T17:45:13+03:00',
         ],
         'paymentMethod' => 'acquiring',
         'paymentParams' => [
@@ -458,7 +538,7 @@ $eventBody = [
         'amount' => 12500.5,
         'comment' => 'Покупка шоколадного торта',
         'extra' => [
-            'additionalInfo': 'Sweet Cake',
+            'additionalInfo' => 'Sweet Cake',
         ],
     ],
 ];

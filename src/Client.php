@@ -372,6 +372,42 @@ class Client
 
 
     /**
+     * Get JS for open payment form.
+     *
+     * @param numeric $amount  The order data.
+     * @param string  $orderId The order identifier.
+     * @param array   $query   The additional query params.
+     * @param string  $baseUrl The base payment form url.
+     *
+     * @return string The JS source.
+     */
+    public function getPayJS($amount, $orderId, array $query, $baseUrl=self::PAYMENT_FORM_URI)
+    {
+        $template = file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'template.js');
+        $request  = json_encode(
+            [
+                'publicId' => $this->publicId,
+                'url'      => $this->host.$baseUrl,
+                'formData' => array_replace_recursive(
+                    [
+                        'amount'  => $amount,
+                        'orderId' => $orderId,
+                        'extra'   => [
+                            'apiClient'        => CLIENT_NAME,
+                            'apiClientVersion' => CLIENT_VERSION,
+                        ],
+                    ],
+                    $query
+                ),
+            ]
+        );
+
+        return strtr($template, ['$request' => $request]);
+
+    }//end getPayJS()
+
+
+    /**
      * Get pay URL witch success URL param.
      *
      * @param numeric $amount  The order data.
@@ -412,11 +448,15 @@ class Client
     public function postPayUrl($amount, $orderId, array $query, $baseUrl=self::PAYMENT_FORM_URI)
     {
         // Preset required fields.
-        $body = array_replace(
+        $body = array_replace_recursive(
             [
                 'publicId' => $this->publicId,
                 'amount'   => $amount,
                 'orderId'  => $orderId,
+                'extra'    => [
+                    'apiClient'        => CLIENT_NAME,
+                    'apiClientVersion' => CLIENT_VERSION,
+                ]
             ],
             $query
         );
