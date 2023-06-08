@@ -409,33 +409,6 @@ class Client
      *
      * @throws ClientException
      */
-    public function postPayUrl($amount, $orderId, array $query, $baseUrl=self::PAYMENT_FORM_URI)
-    {
-        // Preset required fields.
-        $body = array_replace(
-            [
-                'publicId' => $this->publicId,
-                'amount'   => $amount,
-                'orderId'  => $orderId,
-            ],
-            $query
-        );
-
-        return $this->requestBuilder($baseUrl, self::POST, $body, true);
-
-    }//end postPayUrl()
-
-
-    /**
-     * Getting information about the status of a transaction.
-     *
-     * @param string $orderId The order identifier.
-     * @param string $baseUrl The base settings url.
-     *
-     * @return array Return result.
-     *
-     * @throws ClientException Throw on API return invalid response.
-     */
     public function getOrderTransaction($orderId, $baseUrl=self::PAYMENTS_API_URI)
     {
         $url = $baseUrl.'/orders/'.$orderId.'/transaction';
